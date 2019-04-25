@@ -14,10 +14,5 @@ export default {
   components: {
     Box
   },
-  data () {
-    return {
-      //
-    }
-  }
 }
 </script>

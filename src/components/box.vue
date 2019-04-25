@@ -5,62 +5,114 @@
         <v-layout row>
           <v-flex xs12 sm6 offset-sm3>
             <v-card>
-              <table>
-                <tr v-for="(item, key, index) in items" :key="index">
-                  <td
-                    v-bind:class="items[key][key2]? 'on':'off'"
-                    v-for="(value, key2, index) in item"
-                    :key="index"
-                    v-on:click="arround_change(key,key2)"
-                  ></td>
-                </tr>
-              </table>
-              <v-card-title primary-title>
-                <div>
-                  <div class="headline">ライツアウト</div>
-                  <span class="grey--text">やってみよう</span>
-                </div>
-              </v-card-title>
+              <v-layout justify-center>
+                <table>
+                  <tr v-for="(item, key, index) in items" :key="index">
+                    <td
+                      v-bind:class="[items[key][key2]? 'on':'off',{ 'guide': isActive(key,key2) }]"
+                      v-for="(value, key2, index) in item"
+                      :key="index"
+                      v-on:click="push_button(key,key2)"
+                    ></td>
+                  </tr>
+                </table>
+              </v-layout>
+              <v-layout justify-center>
+                <v-card-title primary-title>
+                  <div>
+                    <div class="headline">Lights Out</div>
+                  </div>
+                </v-card-title>
+              </v-layout>
 
-              <v-card-actions>
-                <v-btn flat>Answer</v-btn>
-                <v-btn flat color="red" v-on:click="shuffle">Shuffle</v-btn>
-              </v-card-actions>
+              <v-layout justify-center>
+                <v-card-actions>
+                  <v-btn flat color="red" v-on:click="guide">Answer</v-btn>
+                  <v-btn flat v-on:click="shuffle">Shuffle</v-btn>
+                  <v-spacer></v-spacer>
+                  <v-btn flat @click="show = !show">Rule
+                    <v-icon>{{ show ? 'keyboard_arrow_down' : 'keyboard_arrow_up' }}</v-icon>
+                  </v-btn>
+                </v-card-actions>
+ 
+              </v-layout>
+                             <v-slide-y-transition>
+                  <v-card-text
+                    v-show="show"
+                  >ライトを押すと自分とその上下左右のライトが一緒に反転します.全てのライトを消してみよう.</v-card-text>
+                </v-slide-y-transition>
             </v-card>
           </v-flex>
         </v-layout>
+        <v-dialog v-model="dialog" max-width="290">
+          <v-card>
+            <v-card-title class="headline">Success!</v-card-title>
+
+            <v-card-actions>
+              <v-spacer></v-spacer>
+
+              <v-btn color="green darken-1" flat="flat" @click="dialog = false">Close</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </v-container>
     </v-app>
   </div>
 </template>
+
 <script>
 export default {
   name: "Box",
   data() {
     return {
-      isActive: true,
+      guide_number: 0,
+      guide_button_array: [],
+      guide_status: false,
       items: [
-        [true, true, false, false, false],
-        [true, false, false, false, false],
-        [false, false, false, false, false],
-        [false, false, false, false, false],
-        [false, false, false, false, false]
-      ]
+        [true, true, true, true, true],
+        [true, true, true, true, true],
+        [true, true, true, true, true],
+        [true, true, true, true, true],
+        [true, true, true, true, true]
+      ],
+      dialog: false,
+      show: false
     };
   },
-  updated: function() {
-    if (!this.judge()) {
-      this.$nextTick(() => {
-        console.log("success");
-      });
-    }
+  mounted: function() {
+    this.shuffle();
   },
   methods: {
+    init_guide() {
+      this.guide_status = false;
+      this.guide_number = 0;
+      this.guide_button_array = [];
+    },
     print2(y, x) {
       if (this.items[y][x]) {
         this.$set(this.items[y], x, false);
       } else {
         this.$set(this.items[y], x, true);
+      }
+    },
+    isActive(y, x) {
+      if (this.guide_status) {
+        if (
+          this.guide_button_array[this.guide_number][0] == y &&
+          this.guide_button_array[this.guide_number][1] == x
+        ) {
+          return true;
+        }
+      } else {
+        return false;
+      }
+    },
+
+    guide() {
+      this.init_guide();
+      this.guide_button_array = this.suggestion();
+      if (this.guide_button_array.length > 0) {
+        this.guide_status = true;
       }
     },
     arround_change(y, x) {
@@ -76,6 +128,29 @@ export default {
       }
       if (x + 1 < this.items[y].length) {
         this.print2(y, x + 1);
+      }
+
+      if (!this.judge()) {
+        this.$nextTick(() => {
+          this.init_guide();
+          this.dialog = true;
+        });
+      }
+    },
+    push_button(y, x) {
+      if (this.isActive(y, x)) {
+        this.arround_change(y, x);
+        if (this.guide_number < this.guide_button_array.length - 1) {
+          this.guide_number = this.guide_number + 1;
+        } else {
+          this.guide_number = 0;
+        }
+      } else if (this.guide_status) {
+        this.arround_change(y, x);
+        this.guide_status = false;
+        this.guide_number = 0;
+      } else {
+        this.arround_change(y, x);
       }
     },
 
@@ -100,7 +175,10 @@ export default {
       while (i < 5) {
         let j = 0;
         while (j < 5) {
-          this.$set(this.items[i], j, this.random_marubatsu());
+          // this.$set(this.items[i], j, this.random_marubatsu());
+          if (this.random_marubatsu()) {
+            this.arround_change(i, j);
+          }
           j = j + 1;
         }
         i = i + 1;
@@ -154,41 +232,43 @@ export default {
         return false;
       }
     },
-    // suggestion() {
-    //   let now_array = this.$lodash.cloneDeep(this.items);
-    //   let suggestion_array = [];
+    suggestion() {
+      let now_array = this.$lodash.cloneDeep(this.items);
+      let suggestion_array = [];
 
-    //   //1段目の押下するボタンを取得する
-    //   let first_suggestion = this.correct_answer(now_array);
+      //1段目の押下するボタンを取得する
+      let first_suggestion = this.correct_answer(now_array);
 
-    //   console.table(now_array)
+      if (first_suggestion === void 0) {
+        console.log("無理ゲー");
+        return [];
+      } else {
+        for (let num in first_suggestion) {
+          now_array = this.math_arround_change(
+            now_array,
+            0,
+            first_suggestion[num]
+          );
+          suggestion_array.push([0, first_suggestion[num]]);
+        }
 
-    //   if (first_suggestion === void 0) {
-    //     console.log("無理ゲー");
-    //   } else {
-    //     for (let num in first_suggestion) {
-    //       suggestion_array.push([0, first_suggestion[num]]);
-    //     }
-    //     console.table("1",suggestion_array)
-
-    //     // 二段目より下をやる;
-    //     // 自分の上の段が光ってたら押下;
-    //     let i = 1;
-    //     while (i < now_array.length) {
-    //       let j = 0;
-    //       while (j < now_array[i].length) {
-    //         if (now_array[i - 1][j]) {
-    //           console.log("a");
-    //           suggestion_array.push([i,j]);
-    //           now_array = this.math_arround_change(now_array, i, j);
-    //         }
-    //         j = j + 1;
-    //       }
-    //       i = i + 1;
-    //     }
-    //     console.table(now_array)
-    //   }
-    // },
+        // 二段目より下をやる;
+        // 自分の上の段が光ってたら押下;
+        let i = 1;
+        while (i < now_array.length) {
+          let j = 0;
+          while (j < now_array[i].length) {
+            if (now_array[i - 1][j]) {
+              suggestion_array.push([i, j]);
+              now_array = this.math_arround_change(now_array, i, j);
+            }
+            j = j + 1;
+          }
+          i = i + 1;
+        }
+        return suggestion_array;
+      }
+    },
     correct_answer(now_array) {
       let n = 1;
       let front_array_pattern = [];
@@ -248,22 +328,6 @@ export default {
       if (minimum_push_number != -1) {
         return minimum_push_order;
       }
-    },
-    lightsoff_after_second_row(now_array) {
-      // 二段目より下をやる;
-      // 自分の上の段が光ってたら押下;
-      let i = 1;
-      while (i < now_array.length) {
-        let j = 0;
-        while (j < now_array[i].length) {
-          if (now_array[i - 1][j]) {
-            now_array = this.math_arround_change(now_array, i, j);
-          }
-          j = j + 1;
-        }
-        i = i + 1;
-      }
-      return now_array;
     }
   }
 };
@@ -329,4 +393,14 @@ table td {
 .off:active {
   top: 3px;
 }
-</style>
+.guide {
+  background-color: red;
+}
+.guide:hover {
+  background-color: red;
+  box-shadow: inset 0 0 5px 5px white;
+}
+.guide:active {
+  top: 3px;
+}
+</style>ß
