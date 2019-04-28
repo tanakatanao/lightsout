@@ -51,7 +51,7 @@
             <v-card-actions>
               <v-spacer></v-spacer>
 
-              <v-btn color="green darken-1" flat="flat" @click="dialog = false">Close</v-btn>
+              <v-btn color="green darken-1" flat="flat" @click="shuffle">Restart</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -171,11 +171,12 @@ export default {
       return now_array;
     },
     shuffle() {
+      this.dialog = false;
+      this.init_guide();
       let i = 0;
       while (i < 5) {
         let j = 0;
         while (j < 5) {
-          // this.$set(this.items[i], j, this.random_marubatsu());
           if (this.random_marubatsu()) {
             this.arround_change(i, j);
           }
@@ -366,11 +367,11 @@ table td {
   line-height: 52px;
   -webkit-transition: none;
   transition: all 0.3s ease;
-  box-shadow: inset 0 0 5px 5px white;
+  box-shadow: inset 0 0 5px 2px white;
 }
 .on:hover {
   background-color: yellow;
-  box-shadow: inset 0 0 5px 5px white;
+  box-shadow: inset 0 0 5px 2px white;
 }
 .on:active {
   top: 3px;
@@ -384,11 +385,11 @@ table td {
   line-height: 52px;
   -webkit-transition: none;
   transition: none;
-  box-shadow: inset 0 0 5px 5px white;
+  box-shadow: inset 0 0 5px 2px white;
 }
 .off:hover {
   background-color: gray;
-  box-shadow: inset 0 0 5px 5px white;
+  box-shadow: inset 0 0 5px 2px white;
 }
 .off:active {
   top: 3px;
@@ -398,7 +399,7 @@ table td {
 }
 .guide:hover {
   background-color: red;
-  box-shadow: inset 0 0 5px 5px white;
+  box-shadow: inset 0 0 5px 2px white;
 }
 .guide:active {
   top: 3px;
