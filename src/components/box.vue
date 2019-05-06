@@ -4,7 +4,7 @@
       <v-container fluid>
         <v-layout row>
           <v-flex xs12 sm6 offset-sm3>
-            <v-card>
+            <v-card width="450px">
               <v-layout justify-center>
                 <table>
                   <tr v-for="(item, key, index) in items" :key="index">
@@ -13,7 +13,7 @@
                       v-for="(value, key2, index) in item"
                       :key="index"
                       v-on:click="push_button(key,key2)"
-                    ></td>
+                    ><icon-base width="40" height="40"><icon-light /></icon-base></td>
                   </tr>
                 </table>
               </v-layout>
@@ -30,17 +30,15 @@
                   <v-btn flat color="red" v-on:click="guide">Answer</v-btn>
                   <v-btn flat v-on:click="shuffle">Shuffle</v-btn>
                   <v-spacer></v-spacer>
-                  <v-btn flat @click="show = !show">Rule
+                  <v-btn flat @click="show = !show">
+                    Rule
                     <v-icon>{{ show ? 'keyboard_arrow_down' : 'keyboard_arrow_up' }}</v-icon>
                   </v-btn>
                 </v-card-actions>
- 
               </v-layout>
-                             <v-slide-y-transition>
-                  <v-card-text
-                    v-show="show"
-                  >ライトを押すと自分とその上下左右のライトが一緒に反転します.全てのライトを消してみよう.</v-card-text>
-                </v-slide-y-transition>
+              <v-slide-y-transition>
+                <v-card-text v-show="show">ライトを押すと自分とその上下左右のライトが一緒に反転します.全てのライトを消してみよう.</v-card-text>
+              </v-slide-y-transition>
             </v-card>
           </v-flex>
         </v-layout>
@@ -61,7 +59,13 @@
 </template>
 
 <script>
+import IconBase from "./IconBase.vue";
+import IconLight from "./icons/IconLight.vue";
 export default {
+  components: {
+    IconBase,
+    IconLight
+  },
   name: "Box",
   data() {
     return {
@@ -76,7 +80,8 @@ export default {
         [true, true, true, true, true]
       ],
       dialog: false,
-      show: false
+      show: false,
+      yellow:"yellow"
     };
   },
   mounted: function() {
@@ -88,13 +93,14 @@ export default {
       this.guide_number = 0;
       this.guide_button_array = [];
     },
-    print2(y, x) {
-      if (this.items[y][x]) {
-        this.$set(this.items[y], x, false);
-      } else {
-        this.$set(this.items[y], x, true);
-      }
-    },
+switch_on(y, x) {
+  if (this.items[y][x]) {
+    //直接値を入力すると変更が検知されないためこんな感じ
+    this.$set(this.items[y], x, false);
+  } else {
+    this.$set(this.items[y], x, true);
+  }
+},
     isActive(y, x) {
       if (this.guide_status) {
         if (
@@ -117,17 +123,17 @@ export default {
     },
     arround_change(y, x) {
       if (y > 0) {
-        this.print2(y - 1, x);
+        this.switch_on(y - 1, x);
       }
-      this.print2(y, x);
+      this.switch_on(y, x);
       if (y + 1 < this.items.length) {
-        this.print2(y + 1, x);
+        this.switch_on(y + 1, x);
       }
       if (x > 0) {
-        this.print2(y, x - 1);
+        this.switch_on(y, x - 1);
       }
       if (x + 1 < this.items[y].length) {
-        this.print2(y, x + 1);
+        this.switch_on(y, x + 1);
       }
 
       if (!this.judge()) {
@@ -170,39 +176,41 @@ export default {
       }
       return now_array;
     },
-    shuffle() {
-      this.dialog = false;
-      this.init_guide();
-      let i = 0;
-      while (i < 5) {
-        let j = 0;
-        while (j < 5) {
-          if (this.random_marubatsu()) {
-            this.arround_change(i, j);
-          }
-          j = j + 1;
-        }
-        i = i + 1;
+shuffle() {
+  this.dialog = false;
+  this.init_guide();
+  let i = 0;
+  while (i < 5) {
+    let j = 0;
+    while (j < 5) {
+      if (this.random_marubatsu()) {
+        this.arround_change(i, j);
       }
-    },
-    random_marubatsu() {
-      if (Math.random() >= 0.5) {
-        return true;
-      } else {
-        return false;
-      }
-    },
-    judge() {
-      let judge_array = [];
-      for (const i in this.items) {
-        judge_array = judge_array.concat(this.items[i]);
-      }
-      if (judge_array.includes(true)) {
-        return true;
-      } else {
-        return false;
-      }
-    },
+      j = j + 1;
+    }
+    i = i + 1;
+  }
+},
+random_marubatsu() {
+  if (Math.random() >= 0.5) {
+    return true;
+  } else {
+    return false;
+  }
+},
+judge() {
+  let judge_array = [];
+  for (const i in this.items) {
+    // 二次元配列を直列にする
+    judge_array = judge_array.concat(this.items[i]);
+  }
+  // 配列に含まれているかを確認
+  if (judge_array.includes(true)) {
+    return true;
+  } else {
+    return false;
+  }
+},
     kumiawase(balls, nukitorisu) {
       let arrs = [];
       let zensu = balls.length;
@@ -361,17 +369,7 @@ table td {
 }
 .on {
   position: relative;
-  background-color: rgb(255, 255, 132);
-  color: #fff;
-  border-radius: 50px;
-  line-height: 52px;
-  -webkit-transition: none;
-  transition: all 0.3s ease;
-  box-shadow: inset 0 0 5px 2px white;
-}
-.on:hover {
-  background-color: yellow;
-  box-shadow: inset 0 0 5px 2px white;
+  color:rgb(187, 187, 11);
 }
 .on:active {
   top: 3px;
@@ -379,27 +377,14 @@ table td {
 
 .off {
   position: relative;
-  background-color: rgb(172, 172, 172);
-  color: #fff;
-  border-radius: 50px;
-  line-height: 52px;
-  -webkit-transition: none;
-  transition: none;
-  box-shadow: inset 0 0 5px 2px white;
-}
-.off:hover {
-  background-color: gray;
-  box-shadow: inset 0 0 5px 2px white;
+  color:rgb(5, 5, 5);
 }
 .off:active {
   top: 3px;
 }
 .guide {
-  background-color: red;
-}
-.guide:hover {
-  background-color: red;
-  box-shadow: inset 0 0 5px 2px white;
+  background-color: white;
+  color: red;
 }
 .guide:active {
   top: 3px;

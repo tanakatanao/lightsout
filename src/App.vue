@@ -12,7 +12,7 @@ import Box from './components/box.vue'
 export default {
   name: 'App',
   components: {
-    Box
+    Box,
   },
 }
 </script>
